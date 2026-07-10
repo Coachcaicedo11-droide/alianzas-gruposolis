@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alianzas B2B — Grupo Solís</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤝</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #F5F6FA; color: #1a1a1a; min-height: 100vh; }
+    button { font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+
+    .shell { max-width: 920px; margin: 0 auto; padding: 20px 16px 60px; }
+
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+    .logo { font-size: 22px; font-weight: 800; color: #08306B; letter-spacing: -0.5px; }
+    .logo span { color: #EEB92B; }
+    .subtitle { font-size: 14px; color: #666; font-weight: 400; margin-top: 2px; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+
+    /* Buttons */
+    .btn-primary { background: #0A4EA3; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; white-space: nowrap; transition: background 0.2s; }
+    .btn-primary:hover { background: #083D82; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-secondary { background: #f0f0f0; color: #333; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; }
+    .btn-secondary:hover { background: #e4e4e4; }
+    .back-btn { background: none; border: none; color: #0A4EA3; font-size: 14px; font-weight: 600; padding: 4px 0; }
+    .link-btn { background: none; border: none; color: #0A4EA3; font-size: 14px; font-weight: 600; }
+    .small-btn { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 6px 12px; font-size: 13px; }
+    .small-btn:hover { background: #eee; }
+    .btn-danger { background: #e53935; }
+
+    /* Pipeline */
+    .pipeline { display: flex; gap: 8px; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px; }
+    .pipe-card { flex: 1 0 90px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px 10px; border-radius: 10px; border: 1px solid #e8e8e8; background: #fff; min-width: 90px; transition: all 0.2s; }
+    .pipe-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .pipe-card .icon { font-size: 22px; }
+    .pipe-card .count { font-size: 26px; font-weight: 800; color: #08306B; line-height: 1; }
+    .pipe-card .label { font-size: 11px; color: #666; font-weight: 500; }
+
+    /* Section */
+    .section { margin-bottom: 28px; }
+    .section-title { font-size: 16px; font-weight: 700; color: #08306B; margin-bottom: 12px; }
+
+    /* Upcoming */
+    .upcoming-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #fff; border-radius: 8px; border: 1px solid #eee; text-align: left; width: 100%; margin-bottom: 6px; transition: box-shadow 0.2s; }
+    .upcoming-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .upcoming-item strong { color: #08306B; }
+    .badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+
+    /* Cards */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+    .alliance-card { background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid #e8e8e8; text-align: left; display: flex; flex-direction: column; gap: 6px; width: 100%; transition: box-shadow 0.2s; }
+    .alliance-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    .alliance-card strong { color: #08306B; font-size: 15px; }
+    .card-meta { font-size: 13px; color: #666; }
+    .stage-pill { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+
+    /* Empty */
+    .empty-state { text-align: center; padding: 40px; }
+    .empty-state .icon { font-size: 40px; margin-bottom: 8px; }
+
+    /* Filter bar */
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .search-input { flex: 1; min-width: 180px; padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; outline: none; }
+    .search-input:focus { border-color: #0A4EA3; }
+    .select-input { padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; background: #fff; }
+
+    /* List row */
+    .list-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fff; border-radius: 10px; border: 1px solid #e8e8e8; text-align: left; width: 100%; margin-bottom: 8px; transition: box-shadow 0.2s; }
+    .list-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .list-row strong { color: #08306B; }
+    .list-row .meta { display: flex; gap: 16px; margin-top: 4px; font-size: 13px; color: #666; flex-wrap: wrap; }
+    .list-row .arrow { color: #bbb; font-size: 18px; }
+
+    /* Form */
+    .form-title { font-size: 18px; font-weight: 700; color: #08306B; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.3px; }
+    .field input, .field select, .field textarea { padding: 10px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; outline: none; width: 100%; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #0A4EA3; }
+    .field textarea { min-height: 100px; resize: vertical; }
+    .form-actions { display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end; }
+
+    /* Detail */
+    .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    .detail-header h2 { color: #08306B; font-size: 22px; }
+    .detail-header .tipo { color: #666; margin-top: 4px; }
+    .stage-changer { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 20px; padding: 12px 0; border-bottom: 1px solid #eee; }
+    .stage-changer span.label { font-size: 13px; color: #666; margin-right: 8px; }
+    .stage-btn { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; transition: all 0.2s; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; font-size: 14px; color: #333; }
+    .info-item { display: flex; flex-direction: column; gap: 2px; }
+    .info-label { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
+    .notes-box { background: #FAFAF7; border-radius: 10px; padding: 16px 18px; border: 1px solid #eee; }
+    .mini-title { font-size: 14px; font-weight: 700; color: #08306B; margin-bottom: 10px; }
+
+    /* Timeline */
+    .timeline { padding-left: 16px; border-left: 2px solid #e0e0e0; display: flex; flex-direction: column; gap: 14px; }
+    .timeline-item { display: flex; gap: 12px; position: relative; }
+    .timeline-dot { width: 10px; height: 10px; border-radius: 50%; background: #0A4EA3; flex-shrink: 0; margin-top: 4px; margin-left: -22px; }
+    .timeline-date { font-size: 11px; color: #999; font-weight: 600; }
+    .timeline-text { margin-top: 2px; font-size: 14px; color: #333; line-height: 1.5; }
+    .timeline-delete { background: none; border: none; color: #ccc; font-size: 14px; cursor: pointer; }
+    .timeline-delete:hover { color: #e53935; }
+    .add-seguimiento { display: flex; gap: 10px; margin-top: 14px; flex-direction: column; }
+    .add-seguimiento textarea { min-height: 60px; resize: vertical; flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; outline: none; width: 100%; }
+    .add-seguimiento textarea:focus { border-color: #0A4EA3; }
+
+    /* Confirm bar */
+    .confirm-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #FFF3F3; border-radius: 10px; border: 1px solid #ffcdd2; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+
+    /* Toast */
+    .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #FFF3E0; color: #E65100; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 999; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+
+    /* Loading */
+    .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #e0e0e0; border-top-color: #0A4EA3; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: #08306B; margin-top: 16px; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .pipe-card { min-width: 70px; padding: 10px 6px 8px; }
+      .pipe-card .count { font-size: 20px; }
+      .info-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ─── CONFIG ───
+const SUPABASE_URL = 'https://ljqtgppbovubluydgwnp.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqcXRncHBib3Z1Ymx1eWRnd25wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MjIyNTAsImV4cCI6MjA5NzI5ODI1MH0.S6-p3Nl_BTYByKMPsGfLlMi4XMLcyM2u4Q3aTe-4xds';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const STAGES = [
+  { id: 'visita', label: 'Visitada', color: '#5B8DEF', icon: '📍' },
+  { id: 'interesada', label: 'Interesada', color: '#EEB92B', icon: '💬' },
+  { id: 'negociando', label: 'Negociando', color: '#E88D30', icon: '🤝' },
+  { id: 'aliada', label: 'Aliada', color: '#4CAF50', icon: '✅' },
+  { id: 'descartada', label: 'Descartada', color: '#9E9E9E', icon: '✖' },
+];
+
+// ─── STATE ───
+let alliances = [];
+let view = 'dashboard'; // dashboard | list | form | detail
+let editingId = null;
+let selectedId = null;
+let filter = 'all';
+let searchTerm = '';
+let newSeguimiento = '';
+let showDeleteConfirm = false;
+let saving = false;
+let errorMsg = null;
+let form = emptyForm();
+
+function emptyForm() {
+  return { empresa: '', tipo_negocio: '', contacto: '', telefono: '', email: '', direccion: '', fecha_visita: today(), etapa: 'visita', notas: '', fecha_proximo_contacto: '' };
+}
+
+function today() { return new Date().toISOString().slice(0, 10); }
+
+function formatDate(d) {
+  if (!d) return '—';
+  const date = new Date(d + 'T12:00:00');
+  return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const t = new Date(); t.setHours(0,0,0,0);
+  const target = new Date(dateStr + 'T12:00:00'); target.setHours(0,0,0,0);
+  return Math.ceil((target - t) / 86400000);
+}
+
+function stageOf(id) { return STAGES.find(s => s.id === id) || STAGES[0]; }
+
+// ─── DATA ───
+async function loadData() {
+  const { data, error } = await sb.from('alianzas').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  alliances = data || [];
+}
+
+async function insertAlianza(payload) {
+  const { error } = await sb.from('alianzas').insert(payload);
+  if (error) throw error;
+}
+
+async function updateAlianza(id, payload) {
+  payload.updated_at = new Date().toISOString();
+  const { error } = await sb.from('alianzas').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
+async function deleteAlianza(id) {
+  const { error } = await sb.from('alianzas').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ─── ACTIONS ───
+function goTo(v) { view = v; render(); }
+
+function openNew() {
+  form = emptyForm();
+  editingId = null;
+  goTo('form');
+}
+
+function openEdit(a) {
+  form = { empresa: a.empresa||'', tipo_negocio: a.tipo_negocio||'', contacto: a.contacto||'', telefono: a.telefono||'', email: a.email||'', direccion: a.direccion||'', fecha_visita: a.fecha_visita||'', etapa: a.etapa||'visita', notas: a.notas||'', fecha_proximo_contacto: a.fecha_proximo_contacto||'' };
+  editingId = a.id;
+  goTo('form');
+}
+
+function openDetail(id) {
+  selectedId = id;
+  newSeguimiento = '';
+  showDeleteConfirm = false;
+  goTo('detail');
+}
+
+async function saveForm() {
+  if (!form.empresa.trim()) return;
+  saving = true; render();
+  try {
+    const payload = { ...form, fecha_visita: form.fecha_visita || null, fecha_proximo_contacto: form.fecha_proximo_contacto || null };
+    if (editingId) {
+      await updateAlianza(editingId, payload);
+    } else {
+      payload.seguimientos = [];
+      await insertAlianza(payload);
+    }
+    await loadData();
+    view = 'dashboard';
+  } catch(e) { errorMsg = e.message; }
+  saving = false; render();
+}
+
+async function handleDelete(id) {
+  saving = true; render();
+  try {
+    await deleteAlianza(id);
+    await loadData();
+    showDeleteConfirm = false;
+    view = 'dashboard';
+  } catch(e) { errorMsg = e.message; }
+  saving = false; render();
+}
+
+async function changeStage(id, newStage) {
+  try {
+    await updateAlianza(id, { etapa: newStage });
+    await loadData();
+  } catch(e) { errorMsg = e.message; }
+  render();
+}
+
+async function addSeguimiento(id) {
+  if (!newSeguimiento.trim()) return;
+  saving = true; render();
+  try {
+    const a = alliances.find(x => x.id === id);
+    const current = a?.seguimientos || [];
+    const updated = [...current, { fecha: today(), texto: newSeguimiento.trim() }];
+    await updateAlianza(id, { seguimientos: updated });
+    await loadData();
+    newSeguimiento = '';
+  } catch(e) { errorMsg = e.message; }
+  saving = false; render();
+}
+
+async function deleteSeguimiento(alianzaId, index) {
+  try {
+    const a = alliances.find(x => x.id === alianzaId);
+    const updated = [...(a?.seguimientos || [])];
+    updated.splice(index, 1);
+    await updateAlianza(alianzaId, { seguimientos: updated });
+    await loadData();
+  } catch(e) { errorMsg = e.message; }
+  render();
+}
+
+// ─── COMPUTED ───
+function getFiltered() {
+  return alliances.filter(a => {
+    if (filter !== 'all' && a.etapa !== filter) return false;
+    if (searchTerm && !a.empresa.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+}
+
+function getStageCounts() {
+  const c = {};
+  STAGES.forEach(s => c[s.id] = alliances.filter(a => a.etapa === s.id).length);
+  return c;
+}
+
+function getUpcoming() {
+  return alliances
+    .filter(a => a.fecha_proximo_contacto && daysUntil(a.fecha_proximo_contacto) !== null && daysUntil(a.fecha_proximo_contacto) <= 7 && a.etapa !== 'descartada')
+    .sort((a, b) => a.fecha_proximo_contacto.localeCompare(b.fecha_proximo_contacto));
+}
+
+// ─── RENDER ───
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k, v]) => {
+    if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === 'className') el.className = v;
+    else if (k === 'disabled') { if (v) el.setAttribute('disabled', ''); }
+    else if (k === 'value') el.value = v;
+    else if (k === 'selected') { if (v) el.selected = true; }
+    else if (k === 'placeholder') el.placeholder = v;
+    else if (k === 'type') el.type = v;
+    else el.setAttribute(k, v);
+  });
+  children.flat(Infinity).forEach(c => {
+    if (c == null || c === false) return;
+    el.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(c) : c);
+  });
+  return el;
+}
+
+function renderToast() {
+  if (!errorMsg) return null;
+  const t = h('div', { className: 'toast', onClick: () => { errorMsg = null; render(); } }, '⚠️ ' + errorMsg + ' ✕');
+  setTimeout(() => { errorMsg = null; render(); }, 5000);
+  return t;
+}
+
+function renderDashboard() {
+  const counts = getStageCounts();
+  const upcoming = getUpcoming();
+
+  return h('div', { className: 'shell' },
+    renderToast(),
+    // Header
+    h('header', { className: 'header' },
+      h('div', null,
+        h('h1', { className: 'logo' }, h('span', null, '■'), ' Grupo Solís'),
+        h('p', { className: 'subtitle' }, 'Seguimiento de Alianzas B2B')
+      ),
+      h('button', { className: 'btn-primary', onClick: openNew }, '+ Nueva visita')
+    ),
+    // Pipeline
+    h('div', { className: 'pipeline' },
+      ...STAGES.map(s => h('button', {
+        className: 'pipe-card',
+        style: { borderTop: `3px solid ${s.color}`, background: filter === s.id ? s.color + '11' : '#fff' },
+        onClick: () => { filter = filter === s.id ? 'all' : s.id; goTo('list'); }
+      },
+        h('span', { className: 'icon' }, s.icon),
+        h('span', { className: 'count' }, String(counts[s.id])),
+        h('span', { className: 'label' }, s.label)
+      ))
+    ),
+    // Upcoming
+    upcoming.length > 0 ? h('div', { className: 'section' },
+      h('h2', { className: 'section-title' }, '🔔 Próximos seguimientos'),
+      ...upcoming.map(a => {
+        const days = daysUntil(a.fecha_proximo_contacto);
+        const urgent = days <= 1;
+        return h('button', {
+          className: 'upcoming-item',
+          style: { borderLeft: `3px solid ${urgent ? '#e53935' : '#EEB92B'}` },
+          onClick: () => openDetail(a.id)
+        },
+          h('strong', null, a.empresa),
+          h('span', { className: 'badge', style: { background: urgent ? '#e53935' : '#EEB92B', color: urgent ? '#fff' : '#08306B' } },
+            days <= 0 ? 'HOY' : days === 1 ? 'Mañana' : `En ${days} días`
+          )
+        );
+      })
+    ) : null,
+    // Recent
+    h('div', { className: 'section' },
+      h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+        h('h2', { className: 'section-title' }, 'Últimas visitas'),
+        alliances.length > 0 ? h('button', { className: 'link-btn', onClick: () => { filter = 'all'; goTo('list'); } }, 'Ver todas →') : null
+      ),
+      alliances.length === 0
+        ? h('div', { className: 'empty-state' },
+            h('p', { className: 'icon' }, '📋'),
+            h('p', { style: { color: '#666' } }, 'No hay alianzas registradas aún.'),
+            h('button', { className: 'btn-primary', style: { marginTop: '12px' }, onClick: openNew }, 'Registrar primera visita')
+          )
+        : h('div', { className: 'card-grid' },
+            ...alliances.slice(0, 6).map(a => {
+              const st = stageOf(a.etapa);
+              return h('button', { className: 'alliance-card', onClick: () => openDetail(a.id) },
+                h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' } },
+                  h('strong', null, a.empresa),
+                  h('span', { className: 'stage-pill', style: { background: st.color + '22', color: st.color } }, st.icon + ' ' + st.label)
+                ),
+                a.contacto ? h('p', { className: 'card-meta' }, '👤 ' + a.contacto) : null,
+                h('p', { className: 'card-meta' }, '📅 ' + formatDate(a.fecha_visita)),
+                a.fecha_proximo_contacto ? h('p', { className: 'card-meta', style: { color: daysUntil(a.fecha_proximo_contacto) <= 1 ? '#e53935' : '#666' } }, '📩 Seguimiento: ' + formatDate(a.fecha_proximo_contacto)) : null
+              );
+            })
+          )
+    )
+  );
+}
+
+function renderList() {
+  const filtered = getFiltered();
+  return h('div', { className: 'shell' },
+    renderToast(),
+    h('header', { className: 'header-row' },
+      h('button', { className: 'back-btn', onClick: () => goTo('dashboard') }, '← Dashboard'),
+      h('button', { className: 'btn-primary', onClick: openNew }, '+ Nueva')
+    ),
+    h('div', { className: 'filter-bar' },
+      h('input', { className: 'search-input', placeholder: 'Buscar empresa...', value: searchTerm, onInput: (e) => { searchTerm = e.target.value; render(); } }),
+      (() => {
+        const sel = h('select', { className: 'select-input', onChange: (e) => { filter = e.target.value; render(); } },
+          h('option', { value: 'all', selected: filter === 'all' }, 'Todas las etapas'),
+          ...STAGES.map(s => h('option', { value: s.id, selected: filter === s.id }, s.icon + ' ' + s.label))
+        );
+        return sel;
+      })()
+    ),
+    filtered.length === 0
+      ? h('div', { className: 'empty-state' }, h('p', { style: { color: '#666' } }, 'No se encontraron alianzas con estos filtros.'))
+      : h('div', null, ...filtered.map(a => {
+          const st = stageOf(a.etapa);
+          const days = daysUntil(a.fecha_proximo_contacto);
+          return h('button', { className: 'list-row', onClick: () => openDetail(a.id) },
+            h('div', { style: { flex: '1', minWidth: '0' } },
+              h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' } },
+                h('strong', null, a.empresa),
+                h('span', { className: 'stage-pill', style: { background: st.color + '22', color: st.color } }, st.icon + ' ' + st.label)
+              ),
+              h('div', { className: 'meta' },
+                a.contacto ? h('span', null, '👤 ' + a.contacto) : null,
+                h('span', null, '📅 ' + formatDate(a.fecha_visita)),
+                a.fecha_proximo_contacto ? h('span', { style: { color: days !== null && days <= 1 ? '#e53935' : '#666' } }, '📩 ' + formatDate(a.fecha_proximo_contacto)) : null
+              )
+            ),
+            h('span', { className: 'arrow' }, '›')
+          );
+        }))
+  );
+}
+
+function renderForm() {
+  function field(lbl, key, opts = {}) {
+    const attrs = { value: form[key], onInput: (e) => { form[key] = e.target.value; }, placeholder: opts.placeholder || '' };
+    if (opts.type) attrs.type = opts.type;
+    const tag = opts.tag || 'input';
+    let input;
+    if (tag === 'textarea') {
+      input = h('textarea', attrs);
+    } else if (tag === 'select') {
+      input = h('select', { onChange: (e) => { form[key] = e.target.value; } },
+        ...STAGES.map(s => h('option', { value: s.id, selected: form[key] === s.id }, s.icon + ' ' + s.label))
+      );
+    } else {
+      input = h('input', attrs);
+    }
+    return h('div', { className: 'field' + (opts.full ? ' full' : '') }, h('label', null, lbl), input);
+  }
+
+  return h('div', { className: 'shell' },
+    renderToast(),
+    h('header', { className: 'header-row' },
+      h('button', { className: 'back-btn', onClick: () => goTo(editingId ? 'detail' : 'dashboard') }, '← Cancelar'),
+      h('h2', { className: 'form-title' }, editingId ? 'Editar alianza' : 'Nueva visita')
+    ),
+    h('div', { className: 'form-grid' },
+      field('Empresa *', 'empresa', { placeholder: 'Nombre del concesionario o empresa' }),
+      field('Tipo de negocio', 'tipo_negocio', { placeholder: 'Ej: Concesionario, Inmobiliaria...' }),
+      field('Persona de contacto', 'contacto', { placeholder: 'Nombre del contacto' }),
+      field('Teléfono', 'telefono', { placeholder: 'Número de contacto' }),
+      field('Email', 'email', { placeholder: 'correo@empresa.com', type: 'email' }),
+      field('Dirección', 'direccion', { placeholder: 'Dirección de la empresa' }),
+      field('Fecha de visita', 'fecha_visita', { type: 'date' }),
+      field('Etapa', 'etapa', { tag: 'select' }),
+      field('Próximo contacto / envío de info', 'fecha_proximo_contacto', { type: 'date' }),
+      field('Notas de la visita', 'notas', { tag: 'textarea', placeholder: '¿Qué dijeron? ¿Qué les interesó? ¿Objeciones? ¿Qué información necesitan?', full: true })
+    ),
+    h('div', { className: 'form-actions' },
+      h('button', { className: 'btn-secondary', onClick: () => goTo(editingId ? 'detail' : 'dashboard') }, 'Cancelar'),
+      h('button', { className: 'btn-primary', disabled: saving || !form.empresa.trim(), onClick: saveForm },
+        saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Registrar visita'
+      )
+    )
+  );
+}
+
+function renderDetail() {
+  const a = alliances.find(x => x.id === selectedId);
+  if (!a) { goTo('dashboard'); return h('div'); }
+  const st = stageOf(a.etapa);
+  const days = daysUntil(a.fecha_proximo_contacto);
+  const segs = a.seguimientos || [];
+
+  return h('div', { className: 'shell' },
+    renderToast(),
+    h('header', { className: 'header-row' },
+      h('button', { className: 'back-btn', onClick: () => goTo('dashboard') }, '← Dashboard'),
+      h('div', { style: { display: 'flex', gap: '8px' } },
+        h('button', { className: 'small-btn', onClick: () => openEdit(a) }, '✏️ Editar'),
+        h('button', { className: 'small-btn', style: { color: '#e53935' }, onClick: () => { showDeleteConfirm = true; render(); } }, '🗑️')
+      )
+    ),
+    showDeleteConfirm ? h('div', { className: 'confirm-bar' },
+      h('span', null, '¿Eliminar ', h('strong', null, a.empresa), '?'),
+      h('div', { style: { display: 'flex', gap: '8px' } },
+        h('button', { className: 'btn-secondary', onClick: () => { showDeleteConfirm = false; render(); } }, 'No'),
+        h('button', { className: 'btn-primary btn-danger', onClick: () => handleDelete(a.id) }, saving ? '...' : 'Sí, eliminar')
+      )
+    ) : null,
+    // Header
+    h('div', { className: 'detail-header' },
+      h('div', null,
+        h('h2', null, a.empresa),
+        a.tipo_negocio ? h('p', { className: 'tipo' }, a.tipo_negocio) : null
+      ),
+      h('span', { className: 'stage-pill', style: { background: st.color + '22', color: st.color, fontSize: '14px', padding: '6px 14px' } }, st.icon + ' ' + st.label)
+    ),
+    // Stage changer
+    h('div', { className: 'stage-changer' },
+      h('span', { className: 'label' }, 'Cambiar etapa:'),
+      ...STAGES.map(s => h('button', {
+        className: 'stage-btn',
+        style: { background: a.etapa === s.id ? s.color : 'transparent', color: a.etapa === s.id ? '#fff' : s.color, border: `1.5px solid ${s.color}` },
+        onClick: () => changeStage(a.id, s.id)
+      }, s.icon + ' ' + s.label))
+    ),
+    // Info
+    h('div', { className: 'info-grid' },
+      a.contacto ? h('div', { className: 'info-item' }, h('span', { className: 'info-label' }, 'Contacto'), h('span', null, '👤 ' + a.contacto)) : null,
+      a.telefono ? h('div', { className: 'info-item' }, h('span', { className: 'info-label' }, 'Teléfono'), h('span', null, '📞 ' + a.telefono)) : null,
+      a.email ? h('div', { className: 'info-item' }, h('span', { className: 'info-label' }, 'Email'), h('span', null, '📧 ' + a.email)) : null,
+      a.direccion ? h('div', { className: 'info-item' }, h('span', { className: 'info-label' }, 'Dirección'), h('span', null, '📍 ' + a.direccion)) : null,
+      h('div', { className: 'info-item' }, h('span', { className: 'info-label' }, 'Fecha visita'), h('span', null, '📅 ' + formatDate(a.fecha_visita))),
+      a.fecha_proximo_contacto ? h('div', { className: 'info-item' },
+        h('span', { className: 'info-label' }, 'Próximo contacto'),
+        h('span', { style: { color: days !== null && days <= 1 ? '#e53935' : '', fontWeight: days !== null && days <= 1 ? '700' : '400' } },
+          '📩 ' + formatDate(a.fecha_proximo_contacto) + (days !== null && days <= 0 ? ' — ¡HOY!' : days === 1 ? ' — Mañana' : '')
+        )
+      ) : null
+    ),
+    // Notes
+    a.notas ? h('div', { className: 'notes-box' },
+      h('h3', { className: 'mini-title' }, 'Notas de la visita'),
+      h('p', { style: { whiteSpace: 'pre-wrap', lineHeight: '1.6', color: '#333' } }, a.notas)
+    ) : null,
+    // Seguimientos
+    h('div', { style: { marginTop: '24px' } },
+      h('h3', { className: 'mini-title' }, `Historial de seguimientos (${segs.length})`),
+      segs.length === 0
+        ? h('p', { style: { color: '#999', fontSize: '14px' } }, 'Sin seguimientos registrados aún.')
+        : h('div', { className: 'timeline' },
+            ...[...segs].reverse().map((s, i) => {
+              const realIndex = segs.length - 1 - i;
+              return h('div', { className: 'timeline-item' },
+                h('div', { className: 'timeline-dot' }),
+                h('div', { style: { flex: '1' } },
+                  h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+                    h('span', { className: 'timeline-date' }, formatDate(s.fecha)),
+                    h('button', { className: 'timeline-delete', onClick: () => deleteSeguimiento(a.id, realIndex), title: 'Eliminar' }, '✕')
+                  ),
+                  h('p', { className: 'timeline-text' }, s.texto)
+                )
+              );
+            })
+          ),
+      h('div', { className: 'add-seguimiento' },
+        h('textarea', {
+          placeholder: 'Agregar nota de seguimiento... (ej: Se envió brochure, quedaron de revisar con gerencia)',
+          value: newSeguimiento,
+          onInput: (e) => { newSeguimiento = e.target.value; }
+        }),
+        h('button', {
+          className: 'btn-primary',
+          style: { alignSelf: 'flex-end', opacity: saving || !newSeguimiento.trim() ? '0.6' : '1' },
+          disabled: saving || !newSeguimiento.trim(),
+          onClick: () => addSeguimiento(a.id)
+        }, saving ? 'Guardando...' : 'Agregar')
+      )
+    )
+  );
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  let content;
+  switch(view) {
+    case 'dashboard': content = renderDashboard(); break;
+    case 'list': content = renderList(); break;
+    case 'form': content = renderForm(); break;
+    case 'detail': content = renderDetail(); break;
+    default: content = renderDashboard();
+  }
+  if (content) app.appendChild(content);
+}
+
+// ─── INIT ───
+async function init() {
+  const app = document.getElementById('app');
+  app.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><p class="loading-text">Cargando alianzas...</p></div>';
+  try {
+    await loadData();
+  } catch(e) {
+    errorMsg = 'Error conectando: ' + e.message;
+  }
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
