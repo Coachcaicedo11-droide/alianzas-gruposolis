@@ -495,7 +495,7 @@ function renderForm() {
     ),
     h('div', { className: 'form-actions' },
       h('button', { className: 'btn-secondary', onClick: () => goTo(editingId ? 'detail' : 'dashboard') }, 'Cancelar'),
-      h('button', { className: 'btn-primary', disabled: saving || !form.empresa.trim(), onClick: saveForm },
+      h('button', { className: 'btn-primary', disabled: saving, onClick: saveForm },
         saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Registrar visita'
       )
     )
