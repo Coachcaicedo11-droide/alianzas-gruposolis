@@ -161,6 +161,8 @@ let selectedId = null;
 let filter = 'all';
 let searchTerm = '';
 let newSeguimiento = '';
+let newVisitaFecha = '';
+let newVisitaNotas = '';
 let showDeleteConfirm = false;
 let saving = false;
 let errorMsg = null;
@@ -228,24 +230,41 @@ function openEdit(a) {
 function openDetail(id) {
   selectedId = id;
   newSeguimiento = '';
+  newVisitaFecha = today();
+  newVisitaNotas = '';
   showDeleteConfirm = false;
   goTo('detail');
 }
 
 async function saveForm() {
-  if (!form.empresa.trim()) return;
-  saving = true; render();
+  if (!form.empresa.trim()) { alert('Escribe el nombre de la empresa'); return; }
+  saving = true;
   try {
-    const payload = { ...form, fecha_visita: form.fecha_visita || null, fecha_proximo_contacto: form.fecha_proximo_contacto || null };
+    const payload = {
+      empresa: form.empresa.trim(),
+      tipo_negocio: form.tipo_negocio || '',
+      contacto: form.contacto || '',
+      telefono: form.telefono || '',
+      email: form.email || '',
+      direccion: form.direccion || '',
+      fecha_visita: form.fecha_visita || null,
+      etapa: form.etapa || 'visita',
+      notas: form.notas || '',
+      fecha_proximo_contacto: form.fecha_proximo_contacto || null
+    };
     if (editingId) {
       await updateAlianza(editingId, payload);
     } else {
       payload.seguimientos = [];
+      payload.visitas = payload.fecha_visita ? [{ fecha: payload.fecha_visita, notas: payload.notas || '' }] : [];
       await insertAlianza(payload);
     }
     await loadData();
     view = 'dashboard';
-  } catch(e) { errorMsg = e.message; }
+  } catch(e) {
+    alert('Error guardando: ' + e.message);
+    errorMsg = e.message;
+  }
   saving = false; render();
 }
 
@@ -288,6 +307,32 @@ async function deleteSeguimiento(alianzaId, index) {
     const updated = [...(a?.seguimientos || [])];
     updated.splice(index, 1);
     await updateAlianza(alianzaId, { seguimientos: updated });
+    await loadData();
+  } catch(e) { errorMsg = e.message; }
+  render();
+}
+
+async function addVisita(id) {
+  if (!newVisitaFecha) { alert('Selecciona una fecha para la visita'); return; }
+  saving = true;
+  try {
+    const a = alliances.find(x => x.id === id);
+    const current = a?.visitas || [];
+    const updated = [...current, { fecha: newVisitaFecha, notas: newVisitaNotas.trim() }];
+    await updateAlianza(id, { visitas: updated });
+    await loadData();
+    newVisitaFecha = today();
+    newVisitaNotas = '';
+  } catch(e) { alert('Error: ' + e.message); errorMsg = e.message; }
+  saving = false; render();
+}
+
+async function deleteVisita(alianzaId, index) {
+  try {
+    const a = alliances.find(x => x.id === alianzaId);
+    const updated = [...(a?.visitas || [])];
+    updated.splice(index, 1);
+    await updateAlianza(alianzaId, { visitas: updated });
     await loadData();
   } catch(e) { errorMsg = e.message; }
   render();
@@ -407,7 +452,7 @@ function renderDashboard() {
                   h('span', { className: 'stage-pill', style: { background: st.color + '22', color: st.color } }, st.icon + ' ' + st.label)
                 ),
                 a.contacto ? h('p', { className: 'card-meta' }, '👤 ' + a.contacto) : null,
-                h('p', { className: 'card-meta' }, '📅 ' + formatDate(a.fecha_visita)),
+                h('p', { className: 'card-meta' }, '📅 ' + formatDate(a.fecha_visita) + ((a.visitas||[]).length > 1 ? ' · ' + (a.visitas||[]).length + ' visitas' : '')),
                 a.fecha_proximo_contacto ? h('p', { className: 'card-meta', style: { color: daysUntil(a.fecha_proximo_contacto) <= 1 ? '#e53935' : '#666' } }, '📩 Seguimiento: ' + formatDate(a.fecha_proximo_contacto)) : null
               );
             })
@@ -561,6 +606,42 @@ function renderDetail() {
       h('h3', { className: 'mini-title' }, 'Notas de la visita'),
       h('p', { style: { whiteSpace: 'pre-wrap', lineHeight: '1.6', color: '#333' } }, a.notas)
     ) : null,
+    // Visitas
+    (() => {
+      const vis = a.visitas || [];
+      return h('div', { style: { marginTop: '24px' } },
+        h('h3', { className: 'mini-title' }, `📍 Visitas realizadas (${vis.length})`),
+        vis.length === 0
+          ? h('p', { style: { color: '#999', fontSize: '14px' } }, 'Sin visitas registradas.')
+          : h('div', { className: 'timeline' },
+              ...vis.map((v, i) => h('div', { className: 'timeline-item' },
+                h('div', { className: 'timeline-dot', style: { background: '#5B8DEF' } }),
+                h('div', { style: { flex: '1' } },
+                  h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+                    h('span', { className: 'timeline-date' }, 'Visita ' + (i + 1) + ' — ' + formatDate(v.fecha)),
+                    h('button', { className: 'timeline-delete', onClick: () => deleteVisita(a.id, i), title: 'Eliminar' }, '✕')
+                  ),
+                  v.notas ? h('p', { className: 'timeline-text' }, v.notas) : null
+                )
+              ))
+            ),
+        // Add new visita form
+        h('div', { style: { marginTop: '14px', padding: '14px 16px', background: '#fff', borderRadius: '10px', border: '1px solid #e8e8e8' } },
+          h('p', { style: { fontSize: '13px', fontWeight: '600', color: '#08306B', marginBottom: '10px' } }, '+ Registrar nueva visita'),
+          h('div', { style: { display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' } },
+            h('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
+              h('label', { style: { fontSize: '11px', fontWeight: '600', color: '#999', textTransform: 'uppercase' } }, 'Fecha'),
+              h('input', { type: 'date', value: newVisitaFecha, onInput: (e) => { newVisitaFecha = e.target.value; }, style: { padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' } })
+            ),
+            h('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px', flex: '1', minWidth: '200px' } },
+              h('label', { style: { fontSize: '11px', fontWeight: '600', color: '#999', textTransform: 'uppercase' } }, 'Notas de la visita'),
+              h('input', { placeholder: '¿Qué dijeron? ¿Qué pasó?', value: newVisitaNotas, onInput: (e) => { newVisitaNotas = e.target.value; }, style: { padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', width: '100%' } })
+            ),
+            h('button', { className: 'btn-primary', style: { padding: '8px 16px' }, disabled: saving, onClick: () => addVisita(a.id) }, saving ? '...' : 'Agregar visita')
+          )
+        )
+      );
+    })(),
     // Seguimientos
     h('div', { style: { marginTop: '24px' } },
       h('h3', { className: 'mini-title' }, `Historial de seguimientos (${segs.length})`),
